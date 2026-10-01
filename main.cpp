@@ -39,22 +39,22 @@ struct DrawableObject {
     {}
 };
 
-void drawToScreen(DrawableObject &obj) {
+void drawToScreen(DrawableObject *obj) {
     static constexpr Vector2 DRAW_ORIGIN{ 0, 0 };
-    float textureWidth = static_cast<float>(obj.texture.width) / obj.totalAnimationFrames;
-    float textureHeight = static_cast<float>(obj.texture.height);
+    float textureWidth = static_cast<float>(obj->texture.width) / obj->totalAnimationFrames;
+    float textureHeight = static_cast<float>(obj->texture.height);
 
     DrawTexturePro(
-        obj.texture,
-        Rectangle{ textureWidth * obj.animationFrame, 0.0f, textureWidth, textureHeight },
+        obj->texture,
+        Rectangle{ textureWidth * obj->animationFrame, 0.0f, textureWidth, textureHeight },
         Rectangle{
-            obj.screenCoords.x,
-            obj.screenCoords.y,
-            textureWidth * obj.scale.x,
-            textureHeight * obj.scale.y
+            obj->screenCoords.x,
+            obj->screenCoords.y,
+            textureWidth * obj->scale.x,
+            textureHeight * obj->scale.y
         },
         DRAW_ORIGIN,
-        obj.rotation,
+        obj->rotation,
         WHITE
     );
 }
@@ -104,7 +104,7 @@ void render() {
 
     ClearBackground(WHITE);
     
-    drawToScreen(*lamppost);
+    drawToScreen(lamppost);
     
     EndDrawing();
 }
