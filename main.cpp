@@ -103,7 +103,7 @@ DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 /* physics variables */
 const float LANTERN_ROTATION_LIMIT = 50.0f;
-float lanternAngularVelocity = 4.0f;
+float lanternAngularVelocity = 30.0f;
 
 void init() {
     const int LAMP_OFFSET_X = 400;
@@ -167,18 +167,26 @@ void processInput() {
     if (WindowShouldClose()) gAppStatus = TERMINATED;
 }
 
+double lastTickTime = GetTime();
 void update() {
+    double currTime = GetTime();
+    float deltaTime = static_cast<float>(currTime - lastTickTime);
+    lastTickTime = currTime;
+
+    // deltaTime on average is 1/12 meaning we should multiply all frame based vels by 12
+
+
     /* lantern */
 
     // apply rotational velocity
-    lantern->rotation += lanternAngularVelocity;
+    lantern->rotation += lanternAngularVelocity * deltaTime;
     lantern->rotation = clamp(lantern->rotation, -LANTERN_ROTATION_LIMIT, LANTERN_ROTATION_LIMIT);
 
     // apply acceleration toward neutral position
-    lanternAngularVelocity += lerp((lantern->rotation + 90.0f) / 180.0f, 1.0f, -1.0f);
+    lanternAngularVelocity += lerp((lantern->rotation + 90.0f) / 180.0f, 100.0f, -100.0f) * deltaTime;
 
     // apply friction to the lantern's velocity
-    lanternAngularVelocity *= 0.96f;
+    lanternAngularVelocity -= lanternAngularVelocity * 0.30 * deltaTime;
 }
 
 void render() {
