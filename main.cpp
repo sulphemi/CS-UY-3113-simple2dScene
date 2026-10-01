@@ -10,6 +10,7 @@
 **/
 #include "raylib.h"
 #include <algorithm>
+#include <iostream>
 using namespace std;
 
 const char *const TITLE = "lamp";
@@ -112,7 +113,10 @@ float lanternAngularVelocity = 60.0f; // how many degrees the lantern moves per 
 
 float windStrength = 100.0f;
 
+const float weedBaseline = SCREEN_HEIGHT / 2.0f + 650 * DEFAULT_TEXTURE_FACTOR;
 float weedSpeed = (SCREEN_WIDTH + 200) / 8.0f; // how many pixels weed should move in a second
+float weedYv = 100;
+
 
 void init() {
     const int LAMP_OFFSET_X = 400;
@@ -153,7 +157,7 @@ void init() {
     weed = new DrawableObject(
         weedTexture,
         Vector2{
-            SCREEN_WIDTH + 100.0f,
+            100.0f,
             SCREEN_HEIGHT / 2.0f + WEED_OFFSET * DEFAULT_TEXTURE_FACTOR
         },
         2
@@ -199,6 +203,7 @@ void endWind() {
     bgColor = WHITE;
 }
 
+float minh = 69420;
 double lastTickTime = GetTime();
 double lastWindTime = GetTime();
 void update() {
@@ -244,6 +249,14 @@ void update() {
     /* tumbleweed */
     weed->rotation += 100 * deltaTime;    
     weed->screenCoords.x += weedSpeed * deltaTime;
+    weedYv += 100 * deltaTime;
+    if (weed->screenCoords.y > weedBaseline) {
+        weedYv = -weedYv;
+        weed->screenCoords.y = weedBaseline + weedYv * deltaTime;
+    }
+    weed->screenCoords.y += weedYv * deltaTime;
+    minh = min(minh, weed->screenCoords.y);
+    cout << minh << endl;
 
     /* shadow */
 
@@ -251,6 +264,11 @@ void update() {
     shadow->screenCoords.x = weed->screenCoords.x;
 
     // shadow size scales with height of weed
+    shadow->scale.x = lerp(
+        (weed->screenCoords.y - weedBaseline) / (450.0f - weedBaseline),
+        DEFAULT_TEXTURE_FACTOR * 0.95f,
+        DEFAULT_TEXTURE_FACTOR * 1.4f
+    );
 }
 
 void render() {
