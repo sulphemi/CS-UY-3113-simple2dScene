@@ -16,7 +16,7 @@ const char *const TITLE = "lamp";
 
 constexpr int SCREEN_WIDTH = 1280,
               SCREEN_HEIGHT = 720,
-              FPS = 12;
+              FPS = 60;
 
 enum AppStatus { TERMINATED, RUNNING };
 enum Weather { CLEAR, WINDY };
@@ -112,6 +112,8 @@ float lanternAngularVelocity = 60.0f; // how many degrees the lantern moves per 
 
 float windStrength = 100.0f;
 
+float weedSpeed = (SCREEN_WIDTH + 200) / 8.0f; // how many pixels weed should move in a second
+
 void init() {
     const int LAMP_OFFSET_X = 400;
     const int LAMP_OFFSET_Y = 150;
@@ -151,11 +153,16 @@ void init() {
     weed = new DrawableObject(
         weedTexture,
         Vector2{
-            0.0f,
+            SCREEN_WIDTH + 100.0f,
             SCREEN_HEIGHT / 2.0f + WEED_OFFSET * DEFAULT_TEXTURE_FACTOR
         },
         2
     );
+
+    weed->origin = {
+        weedTexture.width / 4.0f * DEFAULT_TEXTURE_FACTOR,
+        weedTexture.height / 2.0f * DEFAULT_TEXTURE_FACTOR
+    };
 
     shadow = new DrawableObject(
         shadowTexture,
@@ -165,6 +172,11 @@ void init() {
         },
         1
     );
+
+    shadow->origin = {
+        shadowTexture.width / 2.0f * DEFAULT_TEXTURE_FACTOR,
+        shadowTexture.height / 2.0f * DEFAULT_TEXTURE_FACTOR
+    };
 
     // compress shadow on y axis to give perspective
     shadow->scale.y = 0.1;
@@ -177,6 +189,9 @@ void processInput() {
 void startWind() {
     currWeather = WINDY;
     bgColor = GRAY;
+
+    // move the tumbleweed at the left side of the screen
+    weed->screenCoords.x = -100;
 }
 
 void endWind() {
@@ -194,17 +209,18 @@ void update() {
     /* wind */
 
     // wind happens every 5 seconds
-    // start wind if it's clear and it's been 5 seconds since last wind ended
-    if (currWeather == CLEAR && currTime - lastWindTime > 5.0) {
+    // start wind if it's clear and it's been 8 seconds since last wind ended
+    if (currWeather == CLEAR && currTime - lastWindTime > 8.0) {
         lastWindTime = currTime;
         startWind();
     }
 
-    // end wind if it's windy and it's been 5 seconds since the wind started
-    if (currWeather == WINDY && currTime - lastWindTime > 5.0) {
+    // end wind if it's windy and it's been 8 seconds since the wind started
+    if (currWeather == WINDY && currTime - lastWindTime > 8.0) {
         lastWindTime = currTime;
         endWind();
     }
+
 
     /* lantern */
 
@@ -223,6 +239,18 @@ void update() {
 
     // apply friction to the lantern's velocity
     lanternAngularVelocity -= lanternAngularVelocity * LANTERN_FRICTION * deltaTime;
+
+
+    /* tumbleweed */
+    weed->rotation += 100 * deltaTime;    
+    weed->screenCoords.x += weedSpeed * deltaTime;
+
+    /* shadow */
+
+    // shadow x always follows weed
+    shadow->screenCoords.x = weed->screenCoords.x;
+
+    // shadow size scales with height of weed
 }
 
 void render() {
