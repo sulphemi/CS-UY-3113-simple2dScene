@@ -103,7 +103,9 @@ DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 /* physics variables */
 const float LANTERN_ROTATION_LIMIT = 50.0f;
-float lanternAngularVelocity = 30.0f;
+const float LANTERN_GRAVITY = 200.0f;
+const float LANTERN_FRICTION = 0.30f; // what percent of velocity the lantern loses per second
+float lanternAngularVelocity = 60.0f; // how many degrees the lantern moves per second
 
 void init() {
     const int LAMP_OFFSET_X = 400;
@@ -173,8 +175,6 @@ void update() {
     float deltaTime = static_cast<float>(currTime - lastTickTime);
     lastTickTime = currTime;
 
-    // deltaTime on average is 1/12 meaning we should multiply all frame based vels by 12
-
 
     /* lantern */
 
@@ -183,10 +183,11 @@ void update() {
     lantern->rotation = clamp(lantern->rotation, -LANTERN_ROTATION_LIMIT, LANTERN_ROTATION_LIMIT);
 
     // apply acceleration toward neutral position
-    lanternAngularVelocity += lerp((lantern->rotation + 90.0f) / 180.0f, 100.0f, -100.0f) * deltaTime;
+    // lantern will experience the maximum amount of acceleration at -90 and 90 degrees
+    lanternAngularVelocity += lerp((lantern->rotation + 90.0f) / 180.0f, LANTERN_GRAVITY, -LANTERN_GRAVITY) * deltaTime;
 
     // apply friction to the lantern's velocity
-    lanternAngularVelocity -= lanternAngularVelocity * 0.30 * deltaTime;
+    lanternAngularVelocity -= lanternAngularVelocity * LANTERN_FRICTION * deltaTime;
 }
 
 void render() {
