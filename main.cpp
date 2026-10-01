@@ -9,6 +9,8 @@
 * Academic Misconduct.
 **/
 #include "raylib.h"
+#include <memory>
+using namespace std;
 
 enum AppStatus { TERMINATED, RUNNING };
 
@@ -72,7 +74,7 @@ Texture2D weedTexture;
 Texture2D shadowTexture;
 
 /* on-screen objects */
-DrawableObject lamppost(postTexture, Vector2{ SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f }, 2);
+DrawableObject *lamppost;
 
 void init() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, TITLE);
@@ -83,6 +85,9 @@ void init() {
     postTexture = LoadTexture("./assets/post.png");
     weedTexture = LoadTexture("./assets/tumbleweed.png");
     shadowTexture = LoadTexture("./assets/shadow.png");
+
+    // create the objects
+    lamppost = new DrawableObject(postTexture, { 0.0f, 0.0f }, 2);
 }
 
 void processInput() {
@@ -90,7 +95,8 @@ void processInput() {
 }
 
 void update() {
-
+    lamppost->animationFrame++;
+    lamppost->animationFrame %= 2;
 }
 
 void render() {
@@ -98,17 +104,22 @@ void render() {
 
     ClearBackground(WHITE);
     
-    
+    drawToScreen(*lamppost);
     
     EndDrawing();
 }
 
 void shutdown() {
     CloseWindow();
+
+    // unloading textures
     UnloadTexture(lampTexture);
     UnloadTexture(postTexture);
     UnloadTexture(weedTexture);
     UnloadTexture(shadowTexture);
+
+    // destroying objects
+
 }
 
 int main() {
