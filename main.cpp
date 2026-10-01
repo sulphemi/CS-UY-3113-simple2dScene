@@ -12,7 +12,17 @@
 #include <memory>
 using namespace std;
 
+const char *const TITLE = "lamp";
+
+constexpr int SCREEN_WIDTH = 1280,
+              SCREEN_HEIGHT = 720,
+              FPS = 12;
+
 enum AppStatus { TERMINATED, RUNNING };
+
+// the textures were originally drawn for 4k 16:9 resolution (3840:2160)
+constexpr float DEFAULT_TEXTURE_FACTOR = static_cast<float>(SCREEN_WIDTH) / 3840;
+constexpr Vector2 DEFAULT_TEXTURE_SCALE{ DEFAULT_TEXTURE_FACTOR, DEFAULT_TEXTURE_FACTOR };
 
 struct DrawableObject {
     const Texture2D &texture;
@@ -27,7 +37,7 @@ struct DrawableObject {
         Vector2 screenCoords,
         int totalAnimationFrames,
         int animationFrame = 0,
-        Vector2 scale = { 1.0f, 1.0f },
+        Vector2 scale = DEFAULT_TEXTURE_SCALE,
         float rotation = 0.0f
     ):
         texture(texture),
@@ -59,12 +69,6 @@ void drawToScreen(DrawableObject *obj) {
     );
 }
 
-const char *const TITLE = "lamp";
-
-constexpr int SCREEN_WIDTH = 1280,
-              SCREEN_HEIGHT = 720,
-              FPS = 12;
-
 AppStatus gAppStatus = RUNNING;
 
 /* textures */
@@ -74,9 +78,14 @@ Texture2D weedTexture;
 Texture2D shadowTexture;
 
 /* on-screen objects */
-DrawableObject *lamppost;
+DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 void init() {
+    const int LAMP_OFFSET_X = 300;
+    const int LAMP_OFFSET_Y = 160;
+    const int WEED_OFFSET = 650;
+    const int SHADOW_OFFSET = 150;
+
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, TITLE);
     SetTargetFPS(FPS);
 
@@ -87,16 +96,59 @@ void init() {
     shadowTexture = LoadTexture("./assets/shadow.png");
 
     // create the objects
-    lamppost = new DrawableObject(postTexture, { 0.0f, 0.0f }, 2);
+    lamppost = new DrawableObject(
+        postTexture,
+        Vector2{
+            SCREEN_WIDTH / 2.0f - lampTexture.width / 4.0f,
+            SCREEN_HEIGHT / 2.0f - lampTexture.height
+        },
+        2
+    );
+
+    lantern = new DrawableObject(
+        lampTexture,
+        Vector2{
+            SCREEN_WIDTH / 2.0f - lampTexture.width / 4.0f + LAMP_OFFSET_X * DEFAULT_TEXTURE_FACTOR,
+            SCREEN_HEIGHT / 2.0f - lampTexture.height + LAMP_OFFSET_Y * DEFAULT_TEXTURE_FACTOR
+        },
+        2
+    );
+
+    weed = new DrawableObject(
+        weedTexture,
+        Vector2{
+            0.0f,
+            SCREEN_HEIGHT / 2.0f + WEED_OFFSET * DEFAULT_TEXTURE_FACTOR
+        },
+        2
+    );
+
+    shadow = new DrawableObject(
+        shadowTexture,
+        Vector2{
+            weed->screenCoords.x,
+            weed->screenCoords.y + SHADOW_OFFSET * DEFAULT_TEXTURE_FACTOR
+        },
+        1
+    );
+
+    // compress shadow on y axis to give perspective
+    shadow->scale.y = 0.1;
 }
 
 void processInput() {
     if (WindowShouldClose()) gAppStatus = TERMINATED;
 }
 
+int frameCt = 0;
 void update() {
-    lamppost->animationFrame++;
-    lamppost->animationFrame %= 2;
+    if (++frameCt % 12 == 0) {
+        lamppost->animationFrame++;
+        lamppost->animationFrame %= 2;
+
+        lantern->animationFrame = ++lantern->animationFrame % 2;
+    }
+
 }
 
 void render() {
@@ -105,6 +157,9 @@ void render() {
     ClearBackground(WHITE);
     
     drawToScreen(lamppost);
+    drawToScreen(lantern);
+    drawToScreen(weed);
+    drawToScreen(shadow);
     
     EndDrawing();
 }
