@@ -19,6 +19,7 @@ constexpr int SCREEN_WIDTH = 1280,
               FPS = 12;
 
 enum AppStatus { TERMINATED, RUNNING };
+enum Weather { CLEAR, WINDY };
 
 // the textures were originally drawn for 4k 16:9 resolution (3840:2160)
 constexpr float DEFAULT_TEXTURE_FACTOR = static_cast<float>(SCREEN_WIDTH) / 3840;
@@ -91,6 +92,8 @@ float lerp(float t, float a, float b) {
 }
 
 AppStatus gAppStatus = RUNNING;
+Weather currWeather = CLEAR;
+Color bgColor = WHITE;
 
 /* textures */
 Texture2D lampTexture;
@@ -106,6 +109,8 @@ const float LANTERN_ROTATION_LIMIT = 50.0f;
 const float LANTERN_GRAVITY = 200.0f;
 const float LANTERN_FRICTION = 0.30f; // what percent of velocity the lantern loses per second
 float lanternAngularVelocity = 60.0f; // how many degrees the lantern moves per second
+
+float windStrength = 100.0f;
 
 void init() {
     const int LAMP_OFFSET_X = 400;
@@ -169,14 +174,44 @@ void processInput() {
     if (WindowShouldClose()) gAppStatus = TERMINATED;
 }
 
+void startWind() {
+    currWeather = WINDY;
+    bgColor = GRAY;
+}
+
+void endWind() {
+    currWeather = CLEAR;
+    bgColor = WHITE;
+}
+
 double lastTickTime = GetTime();
+double lastWindTime = GetTime();
 void update() {
     double currTime = GetTime();
     float deltaTime = static_cast<float>(currTime - lastTickTime);
     lastTickTime = currTime;
 
+    /* wind */
+
+    // wind happens every 5 seconds
+    // start wind if it's clear and it's been 5 seconds since last wind ended
+    if (currWeather == CLEAR && currTime - lastWindTime > 5.0) {
+        lastWindTime = currTime;
+        startWind();
+    }
+
+    // end wind if it's windy and it's been 5 seconds since the wind started
+    if (currWeather == WINDY && currTime - lastWindTime > 5.0) {
+        lastWindTime = currTime;
+        endWind();
+    }
 
     /* lantern */
+
+    // if it's windy, accelerate rightward in direction of wind
+    if (currWeather == WINDY) {
+        lanternAngularVelocity -= windStrength * deltaTime;
+    }
 
     // apply rotational velocity
     lantern->rotation += lanternAngularVelocity * deltaTime;
@@ -193,7 +228,7 @@ void update() {
 void render() {
     BeginDrawing();
 
-    ClearBackground(WHITE);
+    ClearBackground(bgColor);
     
     drawToScreen(lamppost);
     drawToScreen(lantern);
