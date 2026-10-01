@@ -167,14 +167,17 @@ void render() {
 void shutdown() {
     CloseWindow();
 
+    // destroying objects
+    delete lamppost;
+    delete lantern;
+    delete weed;
+    delete shadow;
+
     // unloading textures
     UnloadTexture(lampTexture);
     UnloadTexture(postTexture);
     UnloadTexture(weedTexture);
     UnloadTexture(shadowTexture);
-
-    // destroying objects
-
 }
 
 int main() {
