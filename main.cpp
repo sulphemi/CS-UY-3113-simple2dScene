@@ -9,7 +9,6 @@
 * Academic Misconduct.
 **/
 #include "raylib.h"
-#include <memory>
 using namespace std;
 
 const char *const TITLE = "lamp";
