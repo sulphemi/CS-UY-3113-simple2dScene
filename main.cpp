@@ -9,6 +9,7 @@
 * Academic Misconduct.
 **/
 #include "raylib.h"
+#include <algorithm>
 using namespace std;
 
 const char *const TITLE = "lamp";
@@ -70,6 +71,25 @@ void drawToScreen(DrawableObject *obj) {
     );
 }
 
+/**
+* @brief clamps the value between minimum and maximum
+* @return a value in range [minimum, maximum]
+*/
+float clamp(float original, float minimum, float maximum) {
+    return min(maximum, max(original, minimum));
+}
+
+/**
+* @brief linear interpolation between a and b
+* @param t  a value between 0.0 and 1.0, representing the percentage of the way to b
+* @param a  the starting value
+* @param b  the ending value
+* @return the interpolated value
+*/
+float lerp(float t, float a, float b) {
+    return t * (b - a) + a;
+}
+
 AppStatus gAppStatus = RUNNING;
 
 /* textures */
@@ -82,11 +102,12 @@ Texture2D shadowTexture;
 DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 /* physics variables */
-float lanternAngularVelocity = 1.0f;
+const float LANTERN_ROTATION_LIMIT = 50.0f;
+float lanternAngularVelocity = 4.0f;
 
 void init() {
     const int LAMP_OFFSET_X = 400;
-    const int LAMP_OFFSET_Y = 160;
+    const int LAMP_OFFSET_Y = 150;
     const int WEED_OFFSET = 650;
     const int SHADOW_OFFSET = 150;
 
@@ -147,7 +168,17 @@ void processInput() {
 }
 
 void update() {
+    /* lantern */
+
+    // apply rotational velocity
     lantern->rotation += lanternAngularVelocity;
+    lantern->rotation = clamp(lantern->rotation, -LANTERN_ROTATION_LIMIT, LANTERN_ROTATION_LIMIT);
+
+    // apply acceleration toward neutral position
+    lanternAngularVelocity += lerp((lantern->rotation + 90.0f) / 180.0f, 1.0f, -1.0f);
+
+    // apply friction to the lantern's velocity
+    lanternAngularVelocity *= 0.96f;
 }
 
 void render() {
