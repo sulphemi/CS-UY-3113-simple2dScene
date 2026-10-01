@@ -30,6 +30,7 @@ struct DrawableObject {
     int animationFrame;
     Vector2 scale;
     float rotation;
+    Vector2 origin;
 
     DrawableObject(
         const Texture2D &texture,
@@ -37,19 +38,20 @@ struct DrawableObject {
         int totalAnimationFrames,
         int animationFrame = 0,
         Vector2 scale = DEFAULT_TEXTURE_SCALE,
-        float rotation = 0.0f
+        float rotation = 0.0f,
+        Vector2 origin = { 0.0f, 0.0f }
     ):
         texture(texture),
         screenCoords(screenCoords),
         totalAnimationFrames(totalAnimationFrames),
         animationFrame(animationFrame),
         scale(scale),
-        rotation(rotation)
+        rotation(rotation),
+        origin(origin)
     {}
 };
 
 void drawToScreen(DrawableObject *obj) {
-    static constexpr Vector2 DRAW_ORIGIN{ 0, 0 };
     float textureWidth = static_cast<float>(obj->texture.width) / obj->totalAnimationFrames;
     float textureHeight = static_cast<float>(obj->texture.height);
 
@@ -62,7 +64,7 @@ void drawToScreen(DrawableObject *obj) {
             textureWidth * obj->scale.x,
             textureHeight * obj->scale.y
         },
-        DRAW_ORIGIN,
+        obj->origin,
         obj->rotation,
         WHITE
     );
@@ -79,8 +81,11 @@ Texture2D shadowTexture;
 /* on-screen objects */
 DrawableObject *lamppost, *lantern, *weed, *shadow;
 
+/* physics variables */
+float lanternAngularVelocity = 1.0f;
+
 void init() {
-    const int LAMP_OFFSET_X = 300;
+    const int LAMP_OFFSET_X = 400;
     const int LAMP_OFFSET_Y = 160;
     const int WEED_OFFSET = 650;
     const int SHADOW_OFFSET = 150;
@@ -113,6 +118,8 @@ void init() {
         2
     );
 
+    lantern->origin = { lampTexture.width / 4.0f * DEFAULT_TEXTURE_FACTOR, 0.0f };
+
     weed = new DrawableObject(
         weedTexture,
         Vector2{
@@ -139,15 +146,8 @@ void processInput() {
     if (WindowShouldClose()) gAppStatus = TERMINATED;
 }
 
-int frameCt = 0;
 void update() {
-    if (++frameCt % 12 == 0) {
-        lamppost->animationFrame++;
-        lamppost->animationFrame %= 2;
-
-        lantern->animationFrame = ++lantern->animationFrame % 2;
-    }
-
+    lantern->rotation += lanternAngularVelocity;
 }
 
 void render() {
