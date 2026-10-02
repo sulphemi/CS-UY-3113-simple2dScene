@@ -251,14 +251,17 @@ void update() {
 
 
     /* tumbleweed */
-    weed->rotation += 100 * deltaTime;    
+    weed->rotation += 100 * deltaTime;
     weed->screenCoords.x += weedSpeed * deltaTime;
     weedYv += 100 * deltaTime;
+    weed->screenCoords.y += weedYv * deltaTime;
+
     if (weed->screenCoords.y > weedBaseline) {
         weedYv = -weedYv;
-        weed->screenCoords.y = weedBaseline + weedYv * deltaTime;
+        float diff = weed->screenCoords.y - weedBaseline;
+        weed->screenCoords.y = weedBaseline - diff;
     }
-    weed->screenCoords.y += weedYv * deltaTime;
+
     minh = min(minh, weed->screenCoords.y);
     cout << minh << endl;
 
