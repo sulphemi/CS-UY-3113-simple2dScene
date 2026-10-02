@@ -106,6 +106,9 @@ Texture2D shadowTexture;
 DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 /* physics variables */
+double lastTickTime;
+double lastWindTime;
+
 const float LANTERN_ROTATION_LIMIT = 50.0f;
 const float LANTERN_GRAVITY = 200.0f;
 const float LANTERN_FRICTION = 0.30f; // what percent of velocity the lantern loses per second
@@ -157,7 +160,7 @@ void init() {
     weed = new DrawableObject(
         weedTexture,
         Vector2{
-            100.0f,
+            SCREEN_WIDTH + 100.0f,
             SCREEN_HEIGHT / 2.0f + WEED_OFFSET * DEFAULT_TEXTURE_FACTOR
         },
         2
@@ -184,6 +187,9 @@ void init() {
 
     // compress shadow on y axis to give perspective
     shadow->scale.y = 0.1;
+
+    lastTickTime = GetTime();
+    lastWindTime = GetTime();
 }
 
 void processInput() {
@@ -204,8 +210,6 @@ void endWind() {
 }
 
 float minh = 69420;
-double lastTickTime = GetTime();
-double lastWindTime = GetTime();
 void update() {
     double currTime = GetTime();
     float deltaTime = static_cast<float>(currTime - lastTickTime);
