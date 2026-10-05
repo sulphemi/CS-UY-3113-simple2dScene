@@ -371,8 +371,6 @@ void render() {
 }
 
 void shutdown() {
-    CloseWindow();
-
     // destroying objects
     delete lamppost;
     delete lantern;
@@ -388,6 +386,8 @@ void shutdown() {
     UnloadTexture(weedTexture);
     UnloadTexture(shadowTexture);
     UnloadTexture(particleTexture);
+
+    CloseWindow();
 }
 
 int main() {
