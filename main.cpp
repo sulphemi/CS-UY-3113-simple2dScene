@@ -10,7 +10,9 @@
 **/
 #include "raylib.h"
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 const char *const TITLE = "lamp";
@@ -101,9 +103,14 @@ Texture2D lampTexture;
 Texture2D postTexture;
 Texture2D weedTexture;
 Texture2D shadowTexture;
+Texture2D particleTexture;
 
 /* on-screen objects */
 DrawableObject *lamppost, *lantern, *weed, *shadow;
+
+// particles: a particle ptr paired with its velocity vector
+const int PARTICLE_CT = 100; 
+vector<pair<DrawableObject*, Vector2>> particles(PARTICLE_CT);
 
 /* physics variables */
 double lastTickTime;
@@ -122,6 +129,11 @@ float weedSpeed = (SCREEN_WIDTH + 200) / 8.0f; // how many pixels weed should mo
 float weedYv = 100;
 
 
+float randf(float min, float max) {
+    float rand01 = (float)rand() / RAND_MAX;
+    return rand01 * (max - min) + min;
+}
+
 void init() {
     const int LAMP_OFFSET_X = 400;
     const int LAMP_OFFSET_Y = 150;
@@ -136,6 +148,7 @@ void init() {
     postTexture = LoadTexture("./assets/post.png");
     weedTexture = LoadTexture("./assets/tumbleweed.png");
     shadowTexture = LoadTexture("./assets/shadow.png");
+    particleTexture = LoadTexture("./assets/particle.png");
 
     // create the objects
     lamppost = new DrawableObject(
@@ -188,6 +201,26 @@ void init() {
 
     // compress shadow on y axis to give perspective
     shadow->scale.y = 0.1;
+
+    // populate particles
+    for (size_t i = 0; i < particles.size(); i++) {
+        particles[i] = {
+            new DrawableObject(
+                particleTexture,
+                Vector2{
+                    randf(0.0f, SCREEN_WIDTH),
+                    randf(0.0f, SCREEN_HEIGHT)
+                },
+                1,
+                0,
+                Vector2{ 12, 12 }
+            ),
+            Vector2{
+                randf(-100, 100),
+                randf(-100, 100)
+            }
+        };
+    }
 
     lastTickTime = lastWindTime = lastBoilTime = GetTime();
 }
@@ -287,6 +320,29 @@ void update() {
         lantern->animationFrame = (lantern->animationFrame + 1) % lantern->totalAnimationFrames;
         weed->animationFrame = (weed->animationFrame + 1) % weed->totalAnimationFrames;
     }
+
+    /* particles */
+    for (auto [ particle, particleVel ] : particles) {
+        particle->screenCoords.x += particleVel.x * deltaTime;
+        particle->screenCoords.y += particleVel.y * deltaTime;
+
+        // apply wind
+        if (currWeather == WINDY) {
+            particle->screenCoords.x += windStrength * deltaTime;
+        }
+
+        // if off screen, wrap to other side
+        const int OFFSCREEN_BUFFER = 100;
+        if (particle->screenCoords.x > SCREEN_WIDTH + OFFSCREEN_BUFFER) {
+            particle->screenCoords.x = -OFFSCREEN_BUFFER;
+        } else if (particle->screenCoords.x < -OFFSCREEN_BUFFER) {
+            particle->screenCoords.x = SCREEN_WIDTH + OFFSCREEN_BUFFER;
+        } else if (particle->screenCoords.y > SCREEN_HEIGHT + OFFSCREEN_BUFFER) {
+            particle->screenCoords.y = -OFFSCREEN_BUFFER;
+        } else if (particle->screenCoords.y < -OFFSCREEN_BUFFER) {
+            particle->screenCoords.y = SCREEN_HEIGHT + OFFSCREEN_BUFFER;
+        }
+    }
 }
 
 void render() {
@@ -298,6 +354,9 @@ void render() {
     drawToScreen(lantern);
     drawToScreen(weed);
     drawToScreen(shadow);
+    for (auto [ particle, particleVel ] : particles) {
+        drawToScreen(particle);
+    }
     
     EndDrawing();
 }
