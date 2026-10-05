@@ -8,10 +8,14 @@
 * NYU School of Engineering Policies and Procedures on
 * Academic Misconduct.
 **/
+/**
+* TODO:
+* - fix magic numbers
+* - get rid of destructuring (not in c++11)
+*/
 #include "raylib.h"
 #include <algorithm>
 #include <cstdlib>
-#include <iostream>
 #include <vector>
 using namespace std;
 
@@ -244,7 +248,6 @@ void endWind() {
     bgColor = WHITE;
 }
 
-float minh = 69420;
 void update() {
     double currTime = GetTime();
     float deltaTime = static_cast<float>(currTime - lastTickTime);
@@ -287,8 +290,6 @@ void update() {
     // apply friction to the lantern's velocity
     lanternAngularVelocity -= lanternAngularVelocity * LANTERN_FRICTION * deltaTime;
 
-    cout << "lantern omega: " << lanternAngularVelocity << endl;
-
 
     /* tumbleweed */
     weed->rotation += 100 * deltaTime;
@@ -302,8 +303,6 @@ void update() {
         weed->screenCoords.y = weedBaseline - diff;
     }
 
-    minh = min(minh, weed->screenCoords.y);
-    cout << minh << endl;
 
     /* shadow */
 
@@ -369,8 +368,6 @@ void render() {
 }
 
 void shutdown() {
-    CloseWindow();
-
     // destroying objects
     delete lamppost;
     delete lantern;
@@ -382,6 +379,8 @@ void shutdown() {
     UnloadTexture(postTexture);
     UnloadTexture(weedTexture);
     UnloadTexture(shadowTexture);
+
+    CloseWindow();
 }
 
 int main() {
