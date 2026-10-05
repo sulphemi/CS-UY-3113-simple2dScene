@@ -109,7 +109,7 @@ Texture2D particleTexture;
 DrawableObject *lamppost, *lantern, *weed, *shadow;
 
 // particles: a particle ptr paired with its velocity vector
-const int PARTICLE_CT = 100; 
+const int PARTICLE_CT = 200; 
 vector<pair<DrawableObject*, Vector2>> particles(PARTICLE_CT);
 
 /* physics variables */
@@ -120,9 +120,10 @@ double lastBoilTime;
 const float LANTERN_ROTATION_LIMIT = 50.0f;
 const float LANTERN_GRAVITY = 200.0f;
 const float LANTERN_FRICTION = 0.30f; // what percent of velocity the lantern loses per second
+const float LANTERN_MAXVEL = 50.0f;
 float lanternAngularVelocity = 60.0f; // how many degrees the lantern moves per second
 
-float windStrength = 100.0f;
+float windStrength = 200.0f;
 
 const float weedBaseline = SCREEN_HEIGHT / 2.0f + 650 * DEFAULT_TEXTURE_FACTOR;
 float weedSpeed = (SCREEN_WIDTH + 200) / 8.0f; // how many pixels weed should move in a second
@@ -204,6 +205,7 @@ void init() {
 
     // populate particles
     for (size_t i = 0; i < particles.size(); i++) {
+        float scale = DEFAULT_TEXTURE_FACTOR * 4.0f * randf(0.5f, 1.0f);
         particles[i] = {
             new DrawableObject(
                 particleTexture,
@@ -213,11 +215,11 @@ void init() {
                 },
                 1,
                 0,
-                Vector2{ 12, 12 }
+                Vector2{ scale, scale }
             ),
             Vector2{
-                randf(-100, 100),
-                randf(-100, 100)
+                randf(-20, 20),
+                randf(-20, 20)
             }
         };
     }
@@ -269,6 +271,9 @@ void update() {
     // if it's windy, accelerate rightward in direction of wind
     if (currWeather == WINDY) {
         lanternAngularVelocity -= windStrength * deltaTime;
+
+        // limit lantern velocity
+        lanternAngularVelocity = clamp(lanternAngularVelocity, -LANTERN_MAXVEL, LANTERN_MAXVEL);
     }
 
     // apply rotational velocity
@@ -281,6 +286,8 @@ void update() {
 
     // apply friction to the lantern's velocity
     lanternAngularVelocity -= lanternAngularVelocity * LANTERN_FRICTION * deltaTime;
+
+    cout << "lantern omega: " << lanternAngularVelocity << endl;
 
 
     /* tumbleweed */
