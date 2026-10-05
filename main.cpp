@@ -373,12 +373,16 @@ void shutdown() {
     delete lantern;
     delete weed;
     delete shadow;
+    for (size_t i = 0; i < particles.size(); i++) {
+        delete particles[i].first;
+    }
 
     // unloading textures
     UnloadTexture(lampTexture);
     UnloadTexture(postTexture);
     UnloadTexture(weedTexture);
     UnloadTexture(shadowTexture);
+    UnloadTexture(particleTexture);
 
     CloseWindow();
 }
