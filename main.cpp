@@ -108,6 +108,7 @@ DrawableObject *lamppost, *lantern, *weed, *shadow;
 /* physics variables */
 double lastTickTime;
 double lastWindTime;
+double lastBoilTime;
 
 const float LANTERN_ROTATION_LIMIT = 50.0f;
 const float LANTERN_GRAVITY = 200.0f;
@@ -188,8 +189,7 @@ void init() {
     // compress shadow on y axis to give perspective
     shadow->scale.y = 0.1;
 
-    lastTickTime = GetTime();
-    lastWindTime = GetTime();
+    lastTickTime = lastWindTime = lastBoilTime = GetTime();
 }
 
 void processInput() {
@@ -276,6 +276,17 @@ void update() {
         DEFAULT_TEXTURE_FACTOR * 0.95f,
         DEFAULT_TEXTURE_FACTOR * 1.4f
     );
+
+
+    /* boil animation */
+    if (currTime - lastBoilTime >= 0.5) {
+        lastBoilTime = currTime;
+
+        // advance everything's animation frame by 1
+        lamppost->animationFrame = (lamppost->animationFrame + 1) % lamppost->totalAnimationFrames;
+        lantern->animationFrame = (lantern->animationFrame + 1) % lantern->totalAnimationFrames;
+        weed->animationFrame = (weed->animationFrame + 1) % weed->totalAnimationFrames;
+    }
 }
 
 void render() {
