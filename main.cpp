@@ -11,10 +11,10 @@
 /**
 * TODO:
 * - fix magic numbers
-* - get rid of destructuring (not in c++11)
 */
 #include "raylib.h"
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 #include <vector>
 using namespace std;
@@ -328,7 +328,10 @@ void update() {
     }
 
     /* particles */
-    for (auto [ particle, particleVel ] : particles) {
+    for (size_t i = 0; i < particles.size(); i++) {
+        DrawableObject *particle = particles[i].first;
+        Vector2 &particleVel = particles[i].second;
+        
         particle->screenCoords.x += particleVel.x * deltaTime;
         particle->screenCoords.y += particleVel.y * deltaTime;
 
@@ -360,8 +363,8 @@ void render() {
     drawToScreen(lantern);
     drawToScreen(weed);
     drawToScreen(shadow);
-    for (auto [ particle, particleVel ] : particles) {
-        drawToScreen(particle);
+    for (size_t i = 0; i < particles.size(); i++) {
+        drawToScreen(particles[i].first);
     }
     
     EndDrawing();
